@@ -9,42 +9,37 @@ import { environment } from 'src/environments/environment';
     styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-    items = [];
-    private REST_API_SERVER =environment.apiHost;
-    constructor(private dataService: DataService, private httpClient: HttpClient) { }
-    ngOnInit() {
-        this.dataService.sendGetRequest("todos").subscribe((data: any[]) => {
-            console.log(data);
-            this.items = data;
-        })
-    }
-
-    /* A two-way binding performed which 
-       pushes text on division */
-    public newTask;
+    public items = [];
+    public newTask: string;
     public task;
-    /* When input is empty, it will 
-       not create a new division */
-    public addToList() {
-        if (this.newTask == '') {
-        }
-        else {
-            this.httpClient.post(this.REST_API_SERVER + "todo?descripcion=" + this.newTask,{}).subscribe({
-                complete: () => {
-                    this.dataService.sendGetRequest("todos").subscribe((data: any[]) => {
-                        console.log(data);
-                        this.items = data;
-                    })
-                },
-            });
 
-            this.newTask = '';
-        }
+    constructor(private dataService: DataService, private httpClient: HttpClient) { }
+
+    ngOnInit() {
+        this.getLista();
     }
 
-    /* This function takes to input the 
-       task, that has to be deleted*/
-    public deleteTask(index) {
-        this.items.splice(index, 1);
+    public getLista() {
+        this.dataService.getLista().subscribe(data => {
+            this.items = data;
+        });
+    }
+
+    public addToList() {
+        if (this.newTask == '' || this.newTask.trim() == '') {
+            return;
+        }
+        this.dataService.guardarTodo(this.newTask).subscribe(data => {
+            this.newTask = '';
+            this.getLista();
+        });
+    }
+
+    public deleteTask(x: any) {
+        this.dataService.eliminarTodo(x.idTodo).subscribe(data => {
+            this.items = this.items.filter((elemento) => {
+                return elemento.idTodo != x.idTodo;
+            });
+        });
     }
 } 
